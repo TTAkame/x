@@ -39,7 +39,7 @@ class RenderPasses extends WebGlApp {
 
         // First rendering pass: Render scene to FBO
         fbo.bindFramebuffer(gl);
-        this.renderpass_normal(gl, canvas_width, canvas_height);
+        this.renderpass_normal(gl, canvas_width, canvas_height,['light']);
         fbo.unbindFramebuffer(gl);
 
         // Second rendering pass: Render the texture to the default framebuffer
@@ -53,83 +53,83 @@ class RenderPasses extends WebGlApp {
 
     }
 
-    do_depth_pass(gl, fbo, current_light) {
-        // Compute the scale of the current scene
-        let scale = mat4.getScaling(vec3.create(), this.scene.scenegraph.transformation);
+    do_depth_pass( gl, fbo, current_light )
+    {
+        // compute the scale of the corrent scene
+        let scale = mat4.getScaling(vec3.create(), this.scene.scenegraph.transformation)
 
-        // Bind the depth framebuffer
-        fbo.bindFramebuffer(gl);
+        // TODO compute camera matrices from 
+        let shadow_v
+        let shadow_p
 
-        // Set viewport to the depth framebuffer size
-        gl.viewport(0, 0, fbo.width, fbo.height);
+        // TODO first rendering pass
+        {
+            // TODO add missing steps ...
 
-        // Clear the framebuffer
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            let shadow_camera = current_light.getCamera( scale )
+            shadow_v = shadow_camera.getViewMatrix()
+            shadow_p = shadow_camera.getProjectionMatrix()
 
-        let shadow_camera = current_light.getCamera(scale);
-        let shadow_v = shadow_camera.getViewMatrix();
-        let shadow_p = shadow_camera.getProjectionMatrix();
+            let shader = this.shaders[this.active_shader]
 
-        let shader = this.shaders[2]; // Replace with your depth shader
-        shader.use();
-        // Set uniforms for the depth shader (e.g., light matrices)
-        shader.setUniform4x4f('uView', shadow_v);
-        shader.setUniform4x4f('uProjection', shadow_p);
-        // ...
+            {
+                // TODO configure shader parameters
+            }
 
-        this.renderpass_normal(gl, fbo.width, fbo.height, ['light']);
+            this.renderpass_normal(gl, fbo.width, fbo.height, [ 'light' ])
 
-        shader.unuse();
+            {
+                // TODO restore shader parameters
+            }
+        
+            // TODO add missing steps ...
+        }
 
-        fbo.unbindFramebuffer(gl);
-
-        // Combine view and projection matrix for later use
-        let shadow_pv = mat4.multiply(mat4.create(), shadow_p, shadow_v);
-        return shadow_pv;
+        return // TODO compute the output projection matrix
     }
 
-    renderpass_shadowmap(gl, canvas_width, canvas_height) {
-        let u_shadow_pv_directional = mat4.identity(mat4.create());
-        let u_shadow_pv_point = mat4.identity(mat4.create());
-
+    renderpass_shadowmap( gl, canvas_width, canvas_height )
+    {
+        // compute the light-camera matrices for both lights
+        let u_shadow_pv_directional = mat4.identity(mat4.create())
+        let u_shadow_pv_point = mat4.identity(mat4.create())
         if (this.first_directional_light) {
-            u_shadow_pv_directional = this.do_depth_pass(gl, this.fbo_directional, this.first_directional_light);
+            u_shadow_pv_directional = 
+                this.do_depth_pass( gl, this.fbo_directional, this.first_directional_light )
         }
         if (this.first_point_light) {
-            u_shadow_pv_point = this.do_depth_pass(gl, this.fbo_point, this.first_point_light);
+            u_shadow_pv_point = 
+                this.do_depth_pass( gl, this.fbo_point, this.first_point_light )
         }
 
-        // Normal rendering pass with shadow mapping
-        this.setViewport(gl, canvas_width, canvas_height);
-        this.clearCanvas(gl);
+        // TODO final rendering pass
+        {
+            // TODO add missing steps ...  
 
-        let shadow_shader = this.shaders[2]; // Replace with your shadow mapping shader
-        shadow_shader.use();
+            this.scene.setShader(gl, this.shadow_shader)
+            {
+                let shader = this.shadow_shader
+                shader.use()
 
-        // Set camera and light uniforms
-        // ...
+                // TODO First, restore camera position
 
-        // Bind and set depth textures
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.fbo_directional.getDepthTexture());
-        shadow_shader.setUniform1i('uDirectionalDepthMap', 0);
+                // TODO Second, pass-in light-camera matrices
 
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this.fbo_point.getDepthTexture());
-        shadow_shader.setUniform1i('uPointDepthMap', 1);
+                // TODO Activate the depth texture for the directional light
 
-        // ...
+                // TODO Activate the depth texture for the point light
 
-        shadow_shader.unuse();
+                shader.unuse()
+            }
 
-        // Render the scene
-        this.scene.render(gl, ['light']);
+            // TODO render the scene normally without lights
+            this.scene.render( gl, [ 'light' ] )
 
-        // Finally, render lights annotations if needed
-        if (this.first_directional_light) this.first_directional_light.render(gl);
-        if (this.first_point_light) this.first_point_light.render(gl);
+            // Finally render the annotation of lights
+            if (this.first_directional_light) this.first_directional_light.render( gl )
+            if (this.first_point_light) this.first_point_light.render( gl )
+        }
     }
 }
 
-export default RenderPasses;
+export default RenderPasses

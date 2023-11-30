@@ -48,31 +48,34 @@ float sobel(sampler2D tex, vec2 uv) {
 
     return sqrt(x * x + y * y);
 }
+const vec4 yellow = vec4(1.0, 0.76171875, 0.0, 1);
 
 void main() {
     if (filter_mode == 0) // Identity Filter
     {
         vec4 inputColor = texture(color_texture, o_texture_coord);
         o_fragColor = mix(inputColor, vec4(1.0, 1.0, 1.0, 1.0), 0.5);
+
     }
     else if (filter_mode == 1) // Depth Filter
     {
         float depth = texture(depth_texture, o_texture_coord).r;
         o_fragColor = vec4(vec3(linearize_depth(depth)), 1);
+
     }
-    else if (filter_mode == 2) // Sobel Filter
-    {
-        vec4 edgeColor = vec4(1.0, 0.76171875, 0.0, 1);
+    else if (filter_mode == 2) {
         vec4 inputColor = texture(color_texture, o_texture_coord);
         float g = sobel(color_texture, o_texture_coord);
-        o_fragColor = mix(inputColor, edgeColor, g);
+        vec4 edgeColor = yellow;
 
-        // Correct fragment depth values if needed
-        // ...
+        // Correct fragment depth values
+        float depth = texture(depth_texture, o_texture_coord).r;
+        gl_FragDepth = linearize_depth(depth);
+
+        o_fragColor = mix(inputColor, edgeColor, g);
     }
     else
     {
         o_fragColor = vec4(0, 1, 0, 1); // Debug color
     }
 }
-
