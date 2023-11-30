@@ -46,17 +46,11 @@ class RenderPasses extends WebGlApp {
         this.setViewport(gl, canvas_width, canvas_height);
         this.clearCanvas(gl);
 
-        let quad_shader = this.shaders[3]; // Replace with your shader for rendering the quad
-        quad_shader.use();
+        let quad_shader = this.quad; 
         // Bind the texture from the first pass
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, fbo.getColorTexture());
-        quad_shader.setUniform1i('color_texture', 0); // Replace 'uTexture' with your texture uniform
+        quad_shader.render(gl,this.filter_mode,fbo.getColorTexture(),fbo.getDepthTexture());
+        this.scene.render( gl, [ 'model' ] )
 
-        // Render the full-screen quad
-        this.quad.render(gl);
-
-        quad_shader.unuse();
     }
 
     do_depth_pass(gl, fbo, current_light) {

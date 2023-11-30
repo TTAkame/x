@@ -75,3 +75,4 @@ void main() {
         o_fragColor = vec4(0, 1, 0, 1); // Debug color
     }
 }
+
